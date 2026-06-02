@@ -1,16 +1,29 @@
-*fluxo recomendado* 
-      main
-        ↑
-       dev
-        ↑  
-    feat/beatriz
-    feat/eduarda
-    feat/geyslaine
-    feat/lucas
-*branches*
+# VetOS
+
+Sistema de gestão para clínicas veterinárias.
+
+---
+
+# Estrutura de Branches
+
+```text
+main
+  ↑
+ dev
+  ↑
+feat/beatriz
+feat/eduarda
+feat/geyslaine
+feat/lucas
+```
+
+## Branches
+
 - `main`: versão estável do sistema.
 - `dev`: integração das funcionalidades da equipe.
 - `feat/*`: desenvolvimento individual de cada integrante.
+
+---
 
 # Primeira Configuração
 
