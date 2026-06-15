@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 
-
+is_active = models.BooleanField(default=True)
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, role=None, **extra_fields):
         if not username:

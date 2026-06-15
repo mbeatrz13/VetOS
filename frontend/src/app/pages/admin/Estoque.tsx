@@ -19,61 +19,7 @@ export function Estoque() {
   const [editingProduto, setEditingProduto] = useState<Produto | null>(null);
 
   const [produtos] = useState<Produto[]>([
-    {
-      id: 1,
-      nome: "Amoxicilina 500mg",
-      categoria: "Medicamento",
-      quantidade: 45,
-      minimo: 20,
-      unidade: "caixas",
-      validade: "2026-12-31",
-      fornecedor: "Farmácia Vet",
-      preco: 85.00
-    },
-    {
-      id: 2,
-      nome: "Ração Premium Cães",
-      categoria: "Alimento",
-      quantidade: 12,
-      minimo: 15,
-      unidade: "sacos",
-      validade: "2026-08-30",
-      fornecedor: "Pet Food Ltda",
-      preco: 120.00
-    },
-    {
-      id: 3,
-      nome: "Vacina Antirrábica",
-      categoria: "Vacina",
-      quantidade: 8,
-      minimo: 10,
-      unidade: "doses",
-      validade: "2026-06-15",
-      fornecedor: "Lab Veterinário",
-      preco: 35.00
-    },
-    {
-      id: 4,
-      nome: "Luvas Cirúrgicas",
-      categoria: "Material",
-      quantidade: 150,
-      minimo: 50,
-      unidade: "unidades",
-      validade: "2027-01-20",
-      fornecedor: "Med Supply",
-      preco: 2.50
-    },
-    {
-      id: 5,
-      nome: "Seringas 10ml",
-      categoria: "Material",
-      quantidade: 25,
-      minimo: 30,
-      unidade: "pacotes",
-      validade: "2027-03-10",
-      fornecedor: "Med Supply",
-      preco: 15.00
-    },
+    
   ]);
 
   const produtosBaixoEstoque = produtos.filter(p => p.quantidade < p.minimo);

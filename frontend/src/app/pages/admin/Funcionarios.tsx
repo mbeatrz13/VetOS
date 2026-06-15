@@ -18,51 +18,6 @@ export function Funcionarios() {
   const [editingFuncionario, setEditingFuncionario] = useState<Funcionario | null>(null);
 
   const [funcionarios] = useState<Funcionario[]>([
-    {
-      id: 1,
-      nome: "Dr. Carlos Silva",
-      cargo: "Veterinário",
-      email: "carlos@vetos.com",
-      telefone: "(11) 98765-1111",
-      admissao: "2020-01-15",
-      status: "ativo"
-    },
-    {
-      id: 2,
-      nome: "Dra. Ana Santos",
-      cargo: "Veterinária",
-      email: "ana@vetos.com",
-      telefone: "(11) 98765-2222",
-      admissao: "2021-03-10",
-      status: "ativo"
-    },
-    {
-      id: 3,
-      nome: "Maria Oliveira",
-      cargo: "Recepcionista",
-      email: "maria@vetos.com",
-      telefone: "(11) 98765-3333",
-      admissao: "2022-05-20",
-      status: "ativo"
-    },
-    {
-      id: 4,
-      nome: "João Costa",
-      cargo: "Auxiliar Veterinário",
-      email: "joao@vetos.com",
-      telefone: "(11) 98765-4444",
-      admissao: "2022-08-01",
-      status: "ativo"
-    },
-    {
-      id: 5,
-      nome: "Dr. Roberto Lima",
-      cargo: "Veterinário",
-      email: "roberto@vetos.com",
-      telefone: "(11) 98765-5555",
-      admissao: "2019-11-05",
-      status: "férias"
-    },
   ]);
 
   const handleAdd = () => {
