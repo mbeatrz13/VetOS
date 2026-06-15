@@ -1,30 +1,17 @@
 import { useState } from "react";
 import { Search, Plus, Edit, Trash2, Mail, Phone, MapPin } from "lucide-react";
-
-interface Tutor {
-  id: number;
-  nome: string;
-  email: string;
-  telefone: string;
-  endereco: string;
-  animais: number;
-}
+import { useTutors } from "../../../hooks/useTutor";
+import { TutorPayload } from "../../../services/tutor.service";
 
 export function Tutores() {
+  const { tutores, loading, error, fetchTutores, createTutor, updateTutor, deleteTutor } = useTutors();
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [editingTutor, setEditingTutor] = useState<Tutor | null>(null);
-
-  const [tutores] = useState<Tutor[]>([
-    { id: 1, nome: "João Silva", email: "joao@email.com", telefone: "(11) 98765-4321", endereco: "Rua A, 123", animais: 2 },
-    { id: 2, nome: "Maria Santos", email: "maria@email.com", telefone: "(11) 98765-4322", endereco: "Rua B, 456", animais: 1 },
-    { id: 3, nome: "Pedro Costa", email: "pedro@email.com", telefone: "(11) 98765-4323", endereco: "Rua C, 789", animais: 3 },
-    { id: 4, nome: "Ana Oliveira", email: "ana@email.com", telefone: "(11) 98765-4324", endereco: "Rua D, 101", animais: 1 },
-  ]);
+  const [editingTutor, setEditingTutor] = useState<typeof tutores[0] | null>(null);
 
   const filteredTutores = tutores.filter(tutor =>
-    tutor.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    tutor.email.toLowerCase().includes(searchTerm.toLowerCase())
+    tutor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (tutor.email?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
 
   const handleAdd = () => {
@@ -32,9 +19,39 @@ export function Tutores() {
     setShowModal(true);
   };
 
-  const handleEdit = (tutor: Tutor) => {
+  const handleEdit = (tutor: typeof tutores[0]) => {
     setEditingTutor(tutor);
     setShowModal(true);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (confirm("Tem certeza que deseja excluir este tutor?")) {
+      await deleteTutor(id);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const payload: TutorPayload = {
+      name: formData.get("name") as string,
+      email: formData.get("email") as string,
+      phone: formData.get("phone") as string,
+      address: formData.get("address") as string,
+    };
+
+    if (editingTutor) {
+      await updateTutor(editingTutor.id, payload);
+    } else {
+      await createTutor(payload);
+    }
+    setShowModal(false);
+  };
+
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+    fetchTutores(value || undefined);
   };
 
   return (
@@ -61,12 +78,16 @@ export function Tutores() {
           <input
             type="text"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             placeholder="Buscar por nome ou email..."
             className="w-full pl-10 pr-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-recepcao-border)] transition-colors"
           />
         </div>
       </div>
+
+      {/* Loading / Error */}
+      {loading && <p className="text-center text-[var(--color-text-secondary)]">Carregando...</p>}
+      {error && <p className="text-center text-[var(--color-error)]">Erro: {error}</p>}
 
       {/* Tutores List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -77,7 +98,7 @@ export function Tutores() {
           >
             <div className="flex items-start justify-between mb-4">
               <div className="w-12 h-12 rounded-full bg-[var(--color-recepcao)] flex items-center justify-center text-[var(--color-recepcao-light)] font-semibold text-lg">
-                {tutor.nome.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                {tutor.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
               </div>
               <div className="flex gap-2">
                 <button
@@ -86,32 +107,35 @@ export function Tutores() {
                 >
                   <Edit className="w-4 h-4 text-[var(--color-text-secondary)]" />
                 </button>
-                <button className="p-2 hover:bg-[var(--color-bg-card)] rounded-lg transition-colors">
+                <button
+                  onClick={() => handleDelete(tutor.id)}
+                  className="p-2 hover:bg-[var(--color-bg-card)] rounded-lg transition-colors"
+                >
                   <Trash2 className="w-4 h-4 text-[var(--color-error)]" />
                 </button>
               </div>
             </div>
 
-            <h3 className="text-lg font-semibold mb-3">{tutor.nome}</h3>
+            <h3 className="text-lg font-semibold mb-3">{tutor.name}</h3>
 
             <div className="space-y-2 mb-4">
               <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
                 <Mail className="w-4 h-4" />
-                <span>{tutor.email}</span>
+                <span>{tutor.email || "—"}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
                 <Phone className="w-4 h-4" />
-                <span>{tutor.telefone}</span>
+                <span>{tutor.phone || "—"}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
                 <MapPin className="w-4 h-4" />
-                <span>{tutor.endereco}</span>
+                <span>{tutor.address || "—"}</span>
               </div>
             </div>
 
             <div className="pt-3 border-t border-[var(--color-border)]">
               <span className="text-sm text-[var(--color-text-secondary)]">
-                {tutor.animais} {tutor.animais === 1 ? 'animal' : 'animais'} cadastrado{tutor.animais === 1 ? '' : 's'}
+                {tutor.animal_count ?? 0} {(tutor.animal_count ?? 0) === 1 ? 'animal' : 'animais'} cadastrado{(tutor.animal_count ?? 0) === 1 ? '' : 's'}
               </span>
             </div>
           </div>
@@ -126,14 +150,16 @@ export function Tutores() {
               {editingTutor ? 'Editar Tutor' : 'Novo Tutor'}
             </h2>
 
-            <form className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2 text-[var(--color-text-secondary)]">
                   Nome Completo
                 </label>
                 <input
+                  name="name"
                   type="text"
-                  defaultValue={editingTutor?.nome}
+                  defaultValue={editingTutor?.name}
+                  required
                   className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-recepcao-border)] transition-colors"
                   placeholder="Nome do tutor"
                 />
@@ -144,8 +170,9 @@ export function Tutores() {
                   Email
                 </label>
                 <input
+                  name="email"
                   type="email"
-                  defaultValue={editingTutor?.email}
+                  defaultValue={editingTutor?.email ?? ""}
                   className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-recepcao-border)] transition-colors"
                   placeholder="email@exemplo.com"
                 />
@@ -156,8 +183,9 @@ export function Tutores() {
                   Telefone
                 </label>
                 <input
+                  name="phone"
                   type="tel"
-                  defaultValue={editingTutor?.telefone}
+                  defaultValue={editingTutor?.phone ?? ""}
                   className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-recepcao-border)] transition-colors"
                   placeholder="(11) 98765-4321"
                 />
@@ -168,7 +196,8 @@ export function Tutores() {
                   Endereço
                 </label>
                 <textarea
-                  defaultValue={editingTutor?.endereco}
+                  name="address"
+                  defaultValue={editingTutor?.address ?? ""}
                   className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-recepcao-border)] transition-colors resize-none"
                   placeholder="Rua, número, bairro"
                   rows={3}
@@ -185,7 +214,6 @@ export function Tutores() {
                 </button>
                 <button
                   type="submit"
-                  onClick={() => setShowModal(false)}
                   className="flex-1 px-4 py-3 bg-[var(--color-recepcao)] hover:bg-[var(--color-recepcao-border)] text-[var(--color-recepcao-light)] rounded-lg transition-colors"
                 >
                   Salvar
