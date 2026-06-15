@@ -10,8 +10,13 @@ build/
 *.log
 
 # Env
+# Ambientes virtuais Python
+venv/
+.venv/
+backend/venv/
+
 .env
-.env.local
+.env.prd
 
 # Python
 __pycache__/
