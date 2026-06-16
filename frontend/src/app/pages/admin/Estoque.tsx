@@ -1,38 +1,70 @@
 import { useState } from "react";
-import { Search, Plus, Package, AlertTriangle, TrendingDown, Edit, Trash2 } from "lucide-react";
-
-interface Produto {
-  id: number;
-  nome: string;
-  categoria: string;
-  quantidade: number;
-  minimo: number;
-  unidade: string;
-  validade: string;
-  fornecedor: string;
-  preco: number;
-}
+import { Search, Plus, Package, AlertTriangle, TrendingDown, Edit, Trash2, Loader } from "lucide-react";
+import { useProducts } from "../../../hooks/useProducts";
+import type { ProductAPI } from "../../../services/product.service";
 
 export function Estoque() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [editingProduto, setEditingProduto] = useState<Produto | null>(null);
+  const [editingProduto, setEditingProduto] = useState<ProductAPI | null>(null);
+  const [submitLoading, setSubmitLoading] = useState(false);
 
-  const [produtos] = useState<Produto[]>([
-    
-  ]);
+  const { products, loading, error, fetchProducts, createProduct, updateProduct, deleteProduct } = useProducts();
 
-  const produtosBaixoEstoque = produtos.filter(p => p.quantidade < p.minimo);
-  const valorTotalEstoque = produtos.reduce((acc, p) => acc + (p.quantidade * p.preco), 0);
+  const produtosBaixoEstoque = products.filter(p => p.quantity < p.minimum_stock);
+  const valorTotalEstoque = products.reduce((acc, p) => acc + (p.quantity * p.unit_price), 0);
+
+  const filteredProdutos = products.filter(p =>
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleAdd = () => {
     setEditingProduto(null);
     setShowModal(true);
   };
 
-  const handleEdit = (produto: Produto) => {
+  const handleEdit = (produto: ProductAPI) => {
     setEditingProduto(produto);
     setShowModal(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSubmitLoading(true);
+    try {
+      const formData = new FormData(e.currentTarget);
+      const data = {
+        name: formData.get("name") as string,
+        category: formData.get("category") as string,
+        quantity: parseInt(formData.get("quantity") as string),
+        minimum_stock: parseInt(formData.get("minimum_stock") as string),
+        unit: formData.get("unit") as string,
+        expiry_date: (formData.get("expiry_date") as string) || undefined,
+        unit_price: parseFloat(formData.get("unit_price") as string),
+      };
+
+      if (editingProduto) {
+        await updateProduct(editingProduto.id, data);
+      } else {
+        await createProduct(data);
+      }
+      setShowModal(false);
+    } catch (err) {
+      console.error("Erro ao salvar produto:", err);
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (confirm("Tem certeza que deseja deletar este produto?")) {
+      try {
+        await deleteProduct(id);
+      } catch (err) {
+        console.error("Erro ao deletar produto:", err);
+      }
+    }
   };
 
   return (
@@ -52,6 +84,26 @@ export function Estoque() {
         </button>
       </div>
 
+      {error && (
+        <div className="bg-[var(--color-error)]/10 border border-[var(--color-error)] rounded-xl p-6">
+          <p className="text-[var(--color-error)]">Erro ao carregar produtos: {error}</p>
+        </div>
+      )}
+
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader className="w-6 h-6 text-[var(--color-admin)] animate-spin" />
+          <span className="ml-2 text-[var(--color-text-secondary)]">Carregando produtos...</span>
+        </div>
+      )}
+
+      {!loading && products.length === 0 ? (
+        <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-12 text-center">
+          <Package className="w-12 h-12 text-[var(--color-text-muted)] mx-auto mb-3" />
+          <p className="text-[var(--color-text-secondary)]">Nenhum produto cadastrado</p>
+        </div>
+      ) : (
+        <>
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-6">
@@ -60,7 +112,7 @@ export function Estoque() {
               <Package className="w-5 h-5 text-[var(--color-admin-light)]" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{produtos.length}</p>
+              <p className="text-2xl font-bold">{products.length}</p>
               <p className="text-sm text-[var(--color-text-secondary)]">Produtos</p>
             </div>
           </div>
@@ -148,10 +200,10 @@ export function Estoque() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-border)]">
-              {produtos.map((produto) => {
-                const isLowStock = produto.quantidade < produto.minimo;
-                const diasParaVencer = Math.floor((new Date(produto.validade).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                const venceEmBreve = diasParaVencer < 90;
+              {filteredProdutos.map((produto) => {
+                const isLowStock = produto.quantity < produto.minimum_stock;
+                const diasParaVencer = produto.expiry_date ? Math.floor((new Date(produto.expiry_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
+                const venceEmBreve = diasParaVencer !== null && diasParaVencer < 90;
 
                 return (
                   <tr key={produto.id} className="hover:bg-[var(--color-bg-card)] transition-colors">
@@ -161,35 +213,40 @@ export function Estoque() {
                           <Package className="w-5 h-5 text-[var(--color-admin-light)]" />
                         </div>
                         <div>
-                          <p className="font-medium">{produto.nome}</p>
-                          <p className="text-sm text-[var(--color-text-secondary)]">{produto.fornecedor}</p>
+                          <p className="font-medium">{produto.name}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <span className="px-3 py-1 rounded-full text-xs font-medium bg-[var(--color-admin)]/20 text-[var(--color-admin-light)]">
-                        {produto.categoria}
+                        {produto.category}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <span className={`font-medium ${isLowStock ? 'text-[var(--color-warning)]' : ''}`}>
-                          {produto.quantidade} {produto.unidade}
+                          {produto.quantity} {produto.unit}
                         </span>
                         {isLowStock && <AlertTriangle className="w-4 h-4 text-[var(--color-warning)]" />}
                       </div>
-                      <p className="text-xs text-[var(--color-text-secondary)]">Mín: {produto.minimo}</p>
+                      <p className="text-xs text-[var(--color-text-secondary)]">Mín: {produto.minimum_stock}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className={venceEmBreve ? 'text-[var(--color-warning)]' : ''}>
-                        {new Date(produto.validade).toLocaleDateString('pt-BR')}
-                      </p>
-                      {venceEmBreve && (
-                        <p className="text-xs text-[var(--color-warning)]">{diasParaVencer} dias</p>
+                      {produto.expiry_date ? (
+                        <>
+                          <p className={venceEmBreve ? 'text-[var(--color-warning)]' : ''}>
+                            {new Date(produto.expiry_date).toLocaleDateString('pt-BR')}
+                          </p>
+                          {venceEmBreve && (
+                            <p className="text-xs text-[var(--color-warning)]">{diasParaVencer} dias</p>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-[var(--color-text-muted)]">N/A</p>
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-medium">R$ {produto.preco.toFixed(2)}</p>
+                      <p className="font-medium">R$ {produto.unit_price.toFixed(2)}</p>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
@@ -199,7 +256,10 @@ export function Estoque() {
                         >
                           <Edit className="w-4 h-4 text-[var(--color-text-secondary)]" />
                         </button>
-                        <button className="p-2 hover:bg-[var(--color-bg-secondary)] rounded-lg transition-colors">
+                        <button
+                          onClick={() => handleDelete(produto.id)}
+                          className="p-2 hover:bg-[var(--color-bg-secondary)] rounded-lg transition-colors"
+                        >
                           <Trash2 className="w-4 h-4 text-[var(--color-error)]" />
                         </button>
                       </div>
@@ -210,6 +270,8 @@ export function Estoque() {
             </tbody>
           </table>
         </div>
+        </>
+      )}
       </div>
 
       {/* Modal */}
@@ -220,7 +282,7 @@ export function Estoque() {
               {editingProduto ? 'Editar Produto' : 'Novo Produto'}
             </h2>
 
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium mb-2 text-[var(--color-text-secondary)]">
@@ -228,7 +290,9 @@ export function Estoque() {
                   </label>
                   <input
                     type="text"
-                    defaultValue={editingProduto?.nome}
+                    name="name"
+                    defaultValue={editingProduto?.name}
+                    required
                     className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-admin-border)] transition-colors"
                     placeholder="Nome do produto"
                   />
@@ -239,26 +303,17 @@ export function Estoque() {
                     Categoria
                   </label>
                   <select
-                    defaultValue={editingProduto?.categoria}
+                    name="category"
+                    defaultValue={editingProduto?.category}
+                    required
                     className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-admin-border)] transition-colors"
                   >
-                    <option>Medicamento</option>
-                    <option>Vacina</option>
-                    <option>Material</option>
-                    <option>Alimento</option>
+                    <option value="">Selecione uma categoria</option>
+                    <option value="Medicamento">Medicamento</option>
+                    <option value="Vacina">Vacina</option>
+                    <option value="Material">Material</option>
+                    <option value="Alimento">Alimento</option>
                   </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--color-text-secondary)]">
-                    Fornecedor
-                  </label>
-                  <input
-                    type="text"
-                    defaultValue={editingProduto?.fornecedor}
-                    className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-admin-border)] transition-colors"
-                    placeholder="Nome do fornecedor"
-                  />
                 </div>
 
                 <div>
@@ -267,7 +322,10 @@ export function Estoque() {
                   </label>
                   <input
                     type="number"
-                    defaultValue={editingProduto?.quantidade}
+                    name="quantity"
+                    defaultValue={editingProduto?.quantity}
+                    required
+                    min="0"
                     className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-admin-border)] transition-colors"
                   />
                 </div>
@@ -278,7 +336,10 @@ export function Estoque() {
                   </label>
                   <input
                     type="number"
-                    defaultValue={editingProduto?.minimo}
+                    name="minimum_stock"
+                    defaultValue={editingProduto?.minimum_stock}
+                    required
+                    min="0"
                     className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-admin-border)] transition-colors"
                   />
                 </div>
@@ -289,7 +350,9 @@ export function Estoque() {
                   </label>
                   <input
                     type="text"
-                    defaultValue={editingProduto?.unidade}
+                    name="unit"
+                    defaultValue={editingProduto?.unit}
+                    required
                     className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-admin-border)] transition-colors"
                     placeholder="Ex: caixas, unidades"
                   />
@@ -301,7 +364,8 @@ export function Estoque() {
                   </label>
                   <input
                     type="date"
-                    defaultValue={editingProduto?.validade}
+                    name="expiry_date"
+                    defaultValue={editingProduto?.expiry_date ? editingProduto.expiry_date.split('T')[0] : ''}
                     className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-admin-border)] transition-colors"
                   />
                 </div>
@@ -312,8 +376,11 @@ export function Estoque() {
                   </label>
                   <input
                     type="number"
+                    name="unit_price"
                     step="0.01"
-                    defaultValue={editingProduto?.preco}
+                    defaultValue={editingProduto?.unit_price}
+                    required
+                    min="0"
                     className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-admin-border)] transition-colors"
                   />
                 </div>
@@ -323,15 +390,17 @@ export function Estoque() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-3 bg-[var(--color-bg-card)] hover:bg-[var(--color-border)] rounded-lg transition-colors"
+                  disabled={submitLoading}
+                  className="flex-1 px-4 py-3 bg-[var(--color-bg-card)] hover:bg-[var(--color-border)] rounded-lg transition-colors disabled:opacity-50"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-3 bg-[var(--color-admin)] hover:bg-[var(--color-admin-border)] text-[var(--color-admin-light)] rounded-lg transition-colors"
+                  disabled={submitLoading}
+                  className="flex-1 px-4 py-3 bg-[var(--color-admin)] hover:bg-[var(--color-admin-border)] text-[var(--color-admin-light)] rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
+                  {submitLoading && <Loader className="w-4 h-4 animate-spin" />}
                   Salvar
                 </button>
               </div>

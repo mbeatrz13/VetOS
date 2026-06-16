@@ -1,31 +1,33 @@
 import { useState } from "react";
-import { BarChart3, Download, Calendar, TrendingUp, Users, PawPrint, Package, DollarSign } from "lucide-react";
+import { BarChart3, Download, Calendar, TrendingUp, Users, PawPrint, Package, DollarSign, Loader } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { useReports } from "../../../hooks/useReports";
 
 export function Relatorios() {
   const [periodo, setPeriodo] = useState("mes");
+  const { data: reportsData, loading, error } = useReports();
 
-  // Dados mock para os gráficos
-  const atendimentosPorMes = [
+  // Dados mock para os gráficos - mantém fallback se API não fornecer dados
+  const defaultAtendimentosPorMes = [
     { mes: "Jan", atendimentos: 45, receita: 12500 },
     { mes: "Fev", atendimentos: 52, receita: 14200 },
     { mes: "Mar", atendimentos: 61, receita: 16800 },
   ];
 
-  const atendimentosPorTipo = [
+  const defaultAtendimentosPorTipo = [
     { nome: "Consulta", valor: 45, cor: "#5DCAA5" },
     { nome: "Vacinação", valor: 28, cor: "#3C3489" },
     { nome: "Cirurgia", valor: 12, cor: "#712B13" },
     { nome: "Emergência", valor: 8, cor: "#FF6B6B" },
   ];
 
-  const especiesPorAtendimento = [
+  const defaultEspeciesPorAtendimento = [
     { nome: "Cães", valor: 62, cor: "#5DCAA5" },
     { nome: "Gatos", valor: 31, cor: "#3C3489" },
     { nome: "Outros", valor: 7, cor: "#712B13" },
   ];
 
-  const produtosMaisVendidos = [
+  const defaultProdutosMaisVendidos = [
     { produto: "Ração Premium", vendas: 45 },
     { produto: "Vacina Antirrábica", vendas: 38 },
     { produto: "Vermífugo", vendas: 32 },
@@ -33,15 +35,35 @@ export function Relatorios() {
     { produto: "Shampoo", vendas: 22 },
   ];
 
-  const resumoMensal = [
+  // Use API data if available, otherwise use defaults
+  const atendimentosPorMes = reportsData?.monthlyAppointments || defaultAtendimentosPorMes;
+  const atendimentosPorTipo = reportsData?.appointmentsByType || defaultAtendimentosPorTipo;
+  const especiesPorAtendimento = reportsData?.appointmentsBySpecies || defaultEspeciesPorAtendimento;
+  const produtosMaisVendidos = reportsData?.topProducts || defaultProdutosMaisVendidos;
+
+  const defaultResumoMensal = [
     { label: "Atendimentos", valor: "156", icon: BarChart3, color: "recepcao" },
     { label: "Novos Tutores", valor: "23", icon: Users, color: "recepcao" },
     { label: "Animais Cadastrados", valor: "31", icon: PawPrint, color: "clinico" },
     { label: "Receita Total", valor: "R$ 43.500", icon: DollarSign, color: "admin" },
   ];
 
+  const resumoMensal = reportsData?.summary || defaultResumoMensal;
+
   return (
     <div className="p-6 space-y-6">
+      {error && (
+        <div className="bg-[var(--color-warning)]/10 border border-[var(--color-warning)] rounded-xl p-6">
+          <p className="text-[var(--color-warning)]">Erro ao carregar relatórios: {error}</p>
+        </div>
+      )}
+
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader className="w-6 h-6 text-[var(--color-admin)] animate-spin" />
+          <span className="ml-2 text-[var(--color-text-secondary)]">Carregando relatórios...</span>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

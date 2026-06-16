@@ -1,72 +1,27 @@
 import { useState } from "react";
 import { Search, Plus, TestTube, PawPrint, Calendar, FileText, AlertCircle } from "lucide-react";
-
-interface Exame {
-  id: number;
-  data: string;
-  animal: string;
-  tutor: string;
-  veterinario: string;
-  tipo: string;
-  status: "solicitado" | "em análise" | "concluído";
-  resultados?: string;
-  observacoes: string;
-}
+import { useExams } from "../../../hooks/useExams";
 
 export function Exames() {
+  const { exams, loading, error } = useExams();
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [selectedExame, setSelectedExame] = useState<Exame | null>(null);
+  const [selectedExame, setSelectedExame] = useState<typeof exams[0] | null>(null);
 
-  const [exames] = useState<Exame[]>([
-    {
-      id: 1,
-      data: "2026-03-19",
-      animal: "Luna",
-      tutor: "Ana Oliveira",
-      veterinario: "Dra. Ana",
-      tipo: "Hemograma Completo",
-      status: "em análise",
-      observacoes: "Verificar contagem de leucócitos"
-    },
-    {
-      id: 2,
-      data: "2026-03-19",
-      animal: "Luna",
-      tutor: "Ana Oliveira",
-      veterinario: "Dra. Ana",
-      tipo: "Bioquímica Sanguínea",
-      status: "solicitado",
-      observacoes: "Avaliar função hepática e renal"
-    },
-    {
-      id: 3,
-      data: "2026-03-15",
-      animal: "Rex",
-      tutor: "João Silva",
-      veterinario: "Dr. Carlos",
-      tipo: "Hemograma Completo",
-      status: "concluído",
-      resultados: "Resultados dentro da normalidade. Leucócitos: 8.500/mm³, Hemoglobina: 15.2 g/dL",
-      observacoes: "Check-up de rotina"
-    },
-    {
-      id: 4,
-      data: "2026-03-10",
-      animal: "Bob",
-      tutor: "Pedro Costa",
-      veterinario: "Dr. Carlos",
-      tipo: "Raio-X Torácico",
-      status: "concluído",
-      resultados: "Sem alterações significativas. Campos pulmonares limpos.",
-      observacoes: "Tosse persistente"
-    },
-  ]);
-
-  const handleViewDetails = (exame: Exame) => {
+  const handleViewDetails = (exame: typeof exams[0]) => {
     setSelectedExame(exame);
     setShowModal(true);
   };
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-[var(--color-error)]/10 border border-[var(--color-error)] rounded-xl p-6">
+          <p className="text-[var(--color-error)]">Erro ao carregar exames: {error}</p>
+        </div>
+      </div>
+    );
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -85,6 +40,16 @@ export function Exames() {
       default: return TestTube;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <p className="text-[var(--color-text-secondary)]">Carregando exames...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -111,7 +76,7 @@ export function Exames() {
               <TestTube className="w-5 h-5 text-[var(--color-clinico-light)]" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{exames.filter(e => e.status === 'solicitado').length}</p>
+              <p className="text-2xl font-bold">{exams.filter(e => e.status === 'solicitado').length}</p>
               <p className="text-sm text-[var(--color-text-secondary)]">Solicitados</p>
             </div>
           </div>
@@ -123,7 +88,7 @@ export function Exames() {
               <AlertCircle className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{exames.filter(e => e.status === 'em análise').length}</p>
+              <p className="text-2xl font-bold">{exams.filter(e => e.status === 'em análise').length}</p>
               <p className="text-sm text-[var(--color-text-secondary)]">Em Análise</p>
             </div>
           </div>
@@ -135,7 +100,7 @@ export function Exames() {
               <FileText className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{exames.filter(e => e.status === 'concluído').length}</p>
+              <p className="text-2xl font-bold">{exams.filter(e => e.status === 'concluído').length}</p>
               <p className="text-sm text-[var(--color-text-secondary)]">Concluídos</p>
             </div>
           </div>
@@ -166,12 +131,12 @@ export function Exames() {
 
       {/* Exames List */}
       <div className="space-y-4">
-        {exames.map((exame) => {
-          const StatusIcon = getStatusIcon(exame.status);
+        {exams.map((exam) => {
+          const StatusIcon = getStatusIcon(exam.status);
           return (
             <div
-              key={exame.id}
-              onClick={() => handleViewDetails(exame)}
+              key={exam.id}
+              onClick={() => handleViewDetails(exam)}
               className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-6 hover:border-[var(--color-clinico-border)] transition-all cursor-pointer"
             >
               <div className="flex items-start justify-between mb-4">
@@ -180,42 +145,44 @@ export function Exames() {
                     <TestTube className="w-6 h-6 text-[var(--color-clinico-light)]" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold mb-1">{exame.tipo}</h3>
+                    <h3 className="text-lg font-semibold mb-1">{exam.exam_type}</h3>
                     <div className="flex items-center gap-4 text-sm text-[var(--color-text-secondary)]">
                       <div className="flex items-center gap-1">
                         <PawPrint className="w-4 h-4" />
-                        <span>{exame.animal}</span>
+                        <span>Consulta #{exam.consultation}</span>
                       </div>
-                      <span>•</span>
-                      <span>{exame.tutor}</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(exame.status)}`}>
-                    {exame.status}
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(exam.status)}`}>
+                    {exam.status}
                   </span>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)] mb-1">Veterinário Solicitante</p>
-                  <p className="font-medium">{exame.veterinario}</p>
-                </div>
-                <div>
                   <p className="text-sm text-[var(--color-text-secondary)] mb-1">Data da Solicitação</p>
-                  <p className="font-medium">{new Date(exame.data).toLocaleDateString('pt-BR')}</p>
+                  <p className="font-medium">{new Date(exam.request_date).toLocaleDateString('pt-BR')}</p>
                 </div>
-                <div className="md:col-span-2">
-                  <p className="text-sm text-[var(--color-text-secondary)] mb-1">Observações</p>
-                  <p className="font-medium">{exame.observacoes}</p>
-                </div>
-                {exame.resultados && (
+                {exam.result_date && (
+                  <div>
+                    <p className="text-sm text-[var(--color-text-secondary)] mb-1">Data do Resultado</p>
+                    <p className="font-medium">{new Date(exam.result_date).toLocaleDateString('pt-BR')}</p>
+                  </div>
+                )}
+                {exam.notes && (
+                  <div className="md:col-span-2">
+                    <p className="text-sm text-[var(--color-text-secondary)] mb-1">Observações</p>
+                    <p className="font-medium">{exam.notes}</p>
+                  </div>
+                )}
+                {exam.results && (
                   <div className="md:col-span-2">
                     <p className="text-sm text-[var(--color-text-secondary)] mb-1">Resultados</p>
                     <div className="bg-[var(--color-success)]/10 border border-[var(--color-success)]/30 rounded-lg p-3">
-                      <p className="text-sm">{exame.resultados}</p>
+                      <p className="text-sm">{exam.results}</p>
                     </div>
                   </div>
                 )}
@@ -237,53 +204,15 @@ export function Exames() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2 text-[var(--color-text-secondary)]">
-                    Animal
-                  </label>
-                  <select
-                    defaultValue={selectedExame?.animal}
-                    disabled={!!selectedExame}
-                    className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-clinico-border)] transition-colors disabled:opacity-50"
-                  >
-                    <option>Selecione o animal</option>
-                    <option>Rex - João Silva</option>
-                    <option>Mia - Maria Santos</option>
-                    <option>Bob - Pedro Costa</option>
-                    <option>Luna - Ana Oliveira</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--color-text-secondary)]">
-                    Veterinário
-                  </label>
-                  <select
-                    defaultValue={selectedExame?.veterinario}
-                    disabled={!!selectedExame}
-                    className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-clinico-border)] transition-colors disabled:opacity-50"
-                  >
-                    <option>Dr. Carlos</option>
-                    <option>Dra. Ana</option>
-                    <option>Dr. Roberto</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--color-text-secondary)]">
                     Tipo de Exame
                   </label>
-                  <select
-                    defaultValue={selectedExame?.tipo}
+                  <input
+                    type="text"
+                    defaultValue={selectedExame?.exam_type}
                     disabled={!!selectedExame}
                     className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-clinico-border)] transition-colors disabled:opacity-50"
-                  >
-                    <option>Selecione o tipo</option>
-                    <option>Hemograma Completo</option>
-                    <option>Bioquímica Sanguínea</option>
-                    <option>Raio-X</option>
-                    <option>Ultrassom</option>
-                    <option>Urinálise</option>
-                    <option>Parasitológico</option>
-                  </select>
+                    placeholder="Tipo de exame"
+                  />
                 </div>
 
                 <div>
@@ -306,8 +235,8 @@ export function Exames() {
                   Observações / Justificativa
                 </label>
                 <textarea
-                  defaultValue={selectedExame?.observacoes}
-                  disabled={!!selectedExame && !selectedExame.resultados}
+                  defaultValue={selectedExame?.notes || ''}
+                  disabled={!!selectedExame && !selectedExame.results}
                   className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-clinico-border)] transition-colors resize-none disabled:opacity-50"
                   rows={3}
                   placeholder="Motivo da solicitação, sintomas observados..."
@@ -319,7 +248,7 @@ export function Exames() {
                   Resultados
                 </label>
                 <textarea
-                  defaultValue={selectedExame?.resultados}
+                  defaultValue={selectedExame?.results || ''}
                   className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-clinico-border)] transition-colors resize-none"
                   rows={4}
                   placeholder="Registrar resultados do exame..."
@@ -330,10 +259,10 @@ export function Exames() {
                 <div className="bg-[var(--color-clinico)]/10 border border-[var(--color-clinico-border)] rounded-lg p-4">
                   <h4 className="font-semibold mb-2">Informações da Solicitação</h4>
                   <p className="text-sm text-[var(--color-text-secondary)]">
-                    Data: {new Date(selectedExame.data).toLocaleDateString('pt-BR')}
+                    Data: {new Date(selectedExame.request_date).toLocaleDateString('pt-BR')}
                   </p>
                   <p className="text-sm text-[var(--color-text-secondary)]">
-                    Solicitante: {selectedExame.veterinario}
+                    Tipo: {selectedExame.exam_type}
                   </p>
                 </div>
               )}

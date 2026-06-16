@@ -1,109 +1,31 @@
 import { useState } from "react";
-import { Search, FileText, PawPrint, Calendar, Pill, TestTube, Stethoscope } from "lucide-react";
-
-interface RegistroProntuario {
-  data: string;
-  tipo: string;
-  veterinario: string;
-  descricao: string;
-  icon: any;
-}
-
-interface Prontuario {
-  animal: string;
-  tutor: string;
-  especie: string;
-  raca: string;
-  nascimento: string;
-  peso: string;
-  registros: RegistroProntuario[];
-}
+import { Search, FileText, PawPrint, Calendar, Pill, TestTube, Stethoscope, AlertCircle } from "lucide-react";
+import { useMedicalRecords } from "../../../hooks/useMedicalRecords";
 
 export function Prontuarios() {
+  const { medicalRecords, loading, error } = useMedicalRecords();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProntuario, setSelectedProntuario] = useState<Prontuario | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<typeof medicalRecords[0] | null>(null);
 
-  const prontuarios: Prontuario[] = [
-    {
-      animal: "Rex",
-      tutor: "João Silva",
-      especie: "Cão",
-      raca: "Labrador",
-      nascimento: "2020-05-15",
-      peso: "28kg",
-      registros: [
-        {
-          data: "2026-03-19 10:30",
-          tipo: "Consulta",
-          veterinario: "Dr. Carlos",
-          descricao: "Check-up geral. Animal saudável, vacinação em dia. Recomendado retorno em 6 meses.",
-          icon: Stethoscope
-        },
-        {
-          data: "2026-02-10 14:00",
-          tipo: "Vacinação",
-          veterinario: "Dra. Ana",
-          descricao: "Aplicação de vacina antirrábica. Animal reagiu bem. Próxima dose em 1 ano.",
-          icon: Pill
-        },
-        {
-          data: "2026-01-15 09:00",
-          tipo: "Exame",
-          veterinario: "Dr. Carlos",
-          descricao: "Hemograma completo. Resultados dentro da normalidade.",
-          icon: TestTube
-        },
-      ]
-    },
-    {
-      animal: "Mia",
-      tutor: "Maria Santos",
-      especie: "Gato",
-      raca: "Persa",
-      nascimento: "2021-08-20",
-      peso: "4kg",
-      registros: [
-        {
-          data: "2026-03-19 11:00",
-          tipo: "Vacinação",
-          veterinario: "Dra. Ana",
-          descricao: "Vacinação antirrábica. Animal reagiu bem ao procedimento.",
-          icon: Pill
-        },
-        {
-          data: "2025-12-05 15:30",
-          tipo: "Consulta",
-          veterinario: "Dra. Ana",
-          descricao: "Consulta de rotina. Orientações sobre alimentação e higiene.",
-          icon: Stethoscope
-        },
-      ]
-    },
-    {
-      animal: "Luna",
-      tutor: "Ana Oliveira",
-      especie: "Gato",
-      raca: "Siamês",
-      nascimento: "2022-11-10",
-      peso: "3kg",
-      registros: [
-        {
-          data: "2026-03-19 14:00",
-          tipo: "Consulta",
-          veterinario: "Dra. Ana",
-          descricao: "Perda de apetite e letargia. Possível infecção. Exames solicitados.",
-          icon: Stethoscope
-        },
-        {
-          data: "2026-03-19 14:15",
-          tipo: "Exame",
-          veterinario: "Dra. Ana",
-          descricao: "Hemograma e bioquímica solicitados. Aguardando resultados.",
-          icon: TestTube
-        },
-      ]
-    },
-  ];
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-[var(--color-error)]/10 border border-[var(--color-error)] rounded-xl p-6">
+          <p className="text-[var(--color-error)]">Erro ao carregar prontuários: {error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <p className="text-[var(--color-text-secondary)]">Carregando prontuários...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -130,14 +52,14 @@ export function Prontuarios() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Lista de Animais */}
         <div className="lg:col-span-1 space-y-3">
-          <h2 className="font-semibold mb-4">Animais</h2>
-          {prontuarios.map((prontuario, index) => (
+          <h2 className="font-semibold mb-4">Registros Médicos</h2>
+          {medicalRecords.map((record, index) => (
             <div
-              key={index}
-              onClick={() => setSelectedProntuario(prontuario)}
+              key={record.id}
+              onClick={() => setSelectedRecord(record)}
               className={`
                 bg-[var(--color-bg-secondary)] border rounded-xl p-4 cursor-pointer transition-all
-                ${selectedProntuario?.animal === prontuario.animal 
+                ${selectedRecord?.id === record.id 
                   ? 'border-[var(--color-clinico-border)] bg-[var(--color-clinico)]/10' 
                   : 'border-[var(--color-border)] hover:border-[var(--color-border-light)]'
                 }
@@ -145,16 +67,16 @@ export function Prontuarios() {
             >
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-[var(--color-clinico)] flex items-center justify-center">
-                  <PawPrint className="w-6 h-6 text-[var(--color-clinico-light)]" />
+                  <FileText className="w-6 h-6 text-[var(--color-clinico-light)]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold truncate">{prontuario.animal}</h3>
-                  <p className="text-sm text-[var(--color-text-secondary)] truncate">{prontuario.tutor}</p>
+                  <h3 className="font-semibold truncate">Prontuário #{record.id}</h3>
+                  <p className="text-sm text-[var(--color-text-secondary)] truncate">Animal: {record.animal}</p>
                 </div>
               </div>
               <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
                 <p className="text-xs text-[var(--color-text-secondary)]">
-                  {prontuario.especie} • {prontuario.raca}
+                  Criado: {new Date(record.created_at).toLocaleDateString('pt-BR')}
                 </p>
               </div>
             </div>
@@ -163,84 +85,50 @@ export function Prontuarios() {
 
         {/* Detalhes do Prontuário */}
         <div className="lg:col-span-2">
-          {selectedProntuario ? (
+          {selectedRecord ? (
             <div className="space-y-6">
-              {/* Informações do Animal */}
+              {/* Informações do Registro */}
               <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-6">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-16 h-16 rounded-full bg-[var(--color-clinico)] flex items-center justify-center">
-                    <PawPrint className="w-8 h-8 text-[var(--color-clinico-light)]" />
+                    <FileText className="w-8 h-8 text-[var(--color-clinico-light)]" />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-2xl font-bold mb-1">{selectedProntuario.animal}</h2>
-                    <p className="text-[var(--color-text-secondary)] mb-3">Tutor: {selectedProntuario.tutor}</p>
+                    <h2 className="text-2xl font-bold mb-1">Prontuário #{selectedRecord.id}</h2>
+                    <p className="text-[var(--color-text-secondary)] mb-3">Animal ID: {selectedRecord.animal}</p>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div>
-                        <p className="text-xs text-[var(--color-text-secondary)] mb-1">Espécie</p>
-                        <p className="font-medium">{selectedProntuario.especie}</p>
+                        <p className="text-xs text-[var(--color-text-secondary)] mb-1">Criado em</p>
+                        <p className="font-medium">{new Date(selectedRecord.created_at).toLocaleDateString('pt-BR')}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-[var(--color-text-secondary)] mb-1">Raça</p>
-                        <p className="font-medium">{selectedProntuario.raca}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-[var(--color-text-secondary)] mb-1">Nascimento</p>
-                        <p className="font-medium">{new Date(selectedProntuario.nascimento).toLocaleDateString('pt-BR')}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-[var(--color-text-secondary)] mb-1">Peso Atual</p>
-                        <p className="font-medium">{selectedProntuario.peso}</p>
+                        <p className="text-xs text-[var(--color-text-secondary)] mb-1">Atualizado em</p>
+                        <p className="font-medium">{new Date(selectedRecord.updated_at).toLocaleDateString('pt-BR')}</p>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Histórico */}
-              <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-6">
-                <h3 className="text-xl font-semibold mb-4">Histórico de Atendimentos</h3>
-                <div className="space-y-4">
-                  {selectedProntuario.registros.map((registro, index) => {
-                    const Icon = registro.icon;
-                    return (
-                      <div
-                        key={index}
-                        className="border-l-2 border-[var(--color-clinico-border)] pl-4 pb-4 last:pb-0"
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-[var(--color-clinico)] flex items-center justify-center flex-shrink-0">
-                            <Icon className="w-5 h-5 text-[var(--color-clinico-light)]" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-start justify-between mb-2">
-                              <div>
-                                <h4 className="font-semibold">{registro.tipo}</h4>
-                                <p className="text-sm text-[var(--color-text-secondary)]">
-                                  {registro.veterinario}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                                <Calendar className="w-4 h-4" />
-                                <span>{new Date(registro.data).toLocaleString('pt-BR')}</span>
-                              </div>
-                            </div>
-                            <p className="text-sm bg-[var(--color-bg-card)] rounded-lg p-3 border border-[var(--color-border)]">
-                              {registro.descricao}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+              {/* Aviso de dados incompletos */}
+              <div className="bg-[var(--color-warning)]/10 border border-[var(--color-warning)]/30 rounded-xl p-6">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-[var(--color-warning)] flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-semibold text-[var(--color-warning)] mb-1">Dados do Prontuário</h3>
+                    <p className="text-sm text-[var(--color-text-secondary)]">
+                      Os dados detalhados do prontuário (histórico de consultas, exames, vacinações) estão sendo carregados do sistema.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           ) : (
             <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-12 text-center">
               <FileText className="w-16 h-16 text-[var(--color-text-muted)] mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Selecione um animal</h3>
+              <h3 className="text-xl font-semibold mb-2">Selecione um prontuário</h3>
               <p className="text-[var(--color-text-secondary)]">
-                Escolha um animal da lista para visualizar seu prontuário
+                Escolha um registro da lista para visualizar os detalhes
               </p>
             </div>
           )}

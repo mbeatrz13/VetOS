@@ -1,59 +1,14 @@
 import { useState } from "react";
 import { Plus, Search, Stethoscope, PawPrint, Calendar, FileText } from "lucide-react";
-
-interface Atendimento {
-  id: number;
-  data: string;
-  animal: string;
-  tutor: string;
-  veterinario: string;
-  tipo: string;
-  sintomas: string;
-  diagnostico?: string;
-  status: "em andamento" | "concluído" | "aguardando exames";
-}
+import { useConsultations } from "../../../hooks/useConsultations";
 
 export function Atendimentos() {
+  const { consultations, loading, error, createConsultation, updateConsultation } = useConsultations();
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [selectedAtendimento, setSelectedAtendimento] = useState<Atendimento | null>(null);
+  const [selectedAtendimento, setSelectedAtendimento] = useState<typeof consultations[0] | null>(null);
 
-  const [atendimentos] = useState<Atendimento[]>([
-    {
-      id: 1,
-      data: "2026-03-19 10:30",
-      animal: "Rex",
-      tutor: "João Silva",
-      veterinario: "Dr. Carlos",
-      tipo: "Consulta de rotina",
-      sintomas: "Check-up geral",
-      diagnostico: "Animal saudável, vacinação em dia",
-      status: "concluído"
-    },
-    {
-      id: 2,
-      data: "2026-03-19 11:00",
-      animal: "Mia",
-      tutor: "Maria Santos",
-      veterinario: "Dra. Ana",
-      tipo: "Vacinação",
-      sintomas: "Vacinação antirrábica",
-      status: "em andamento"
-    },
-    {
-      id: 3,
-      data: "2026-03-19 14:00",
-      animal: "Luna",
-      tutor: "Ana Oliveira",
-      veterinario: "Dra. Ana",
-      tipo: "Consulta",
-      sintomas: "Perda de apetite, letargia",
-      diagnostico: "Possível infecção, exames solicitados",
-      status: "aguardando exames"
-    },
-  ]);
-
-  const handleViewDetails = (atendimento: Atendimento) => {
+  const handleViewDetails = (atendimento: typeof consultations[0]) => {
     setSelectedAtendimento(atendimento);
     setShowModal(true);
   };
@@ -66,6 +21,16 @@ export function Atendimentos() {
       default: return "bg-[var(--color-text-muted)]/20 text-[var(--color-text-secondary)]";
     }
   };
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-[var(--color-error)]/10 border border-[var(--color-error)] rounded-xl p-6">
+          <p className="text-[var(--color-error)]">Erro ao carregar atendimentos: {error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -92,7 +57,7 @@ export function Atendimentos() {
               <Stethoscope className="w-5 h-5 text-[var(--color-clinico-light)]" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{atendimentos.length}</p>
+              <p className="text-2xl font-bold">{consultations.length}</p>
               <p className="text-sm text-[var(--color-text-secondary)]">Total Hoje</p>
             </div>
           </div>
@@ -104,7 +69,7 @@ export function Atendimentos() {
               <Stethoscope className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{atendimentos.filter(a => a.status === 'em andamento').length}</p>
+              <p className="text-2xl font-bold">{consultations.filter(a => a.status === 'em andamento').length}</p>
               <p className="text-sm text-[var(--color-text-secondary)]">Em Andamento</p>
             </div>
           </div>
@@ -116,7 +81,7 @@ export function Atendimentos() {
               <Stethoscope className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{atendimentos.filter(a => a.status === 'concluído').length}</p>
+              <p className="text-2xl font-bold">{consultations.filter(a => a.status === 'concluído').length}</p>
               <p className="text-sm text-[var(--color-text-secondary)]">Concluídos</p>
             </div>
           </div>
@@ -139,7 +104,7 @@ export function Atendimentos() {
 
       {/* Atendimentos List */}
       <div className="space-y-4">
-        {atendimentos.map((atendimento) => (
+        {consultations.map((atendimento) => (
           <div
             key={atendimento.id}
             onClick={() => handleViewDetails(atendimento)}
@@ -151,14 +116,12 @@ export function Atendimentos() {
                   <Stethoscope className="w-6 h-6 text-[var(--color-clinico-light)]" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold mb-1">{atendimento.tipo}</h3>
+                  <h3 className="text-lg font-semibold mb-1">{atendimento.type}</h3>
                   <div className="flex items-center gap-4 text-sm text-[var(--color-text-secondary)]">
                     <div className="flex items-center gap-1">
-                      <PawPrint className="w-4 h-4" />
-                      <span>{atendimento.animal}</span>
+                      <FileText className="w-4 h-4" />
+                      <span>Consulta #{atendimento.id}</span>
                     </div>
-                    <span>•</span>
-                    <span>{atendimento.tutor}</span>
                   </div>
                 </div>
               </div>
@@ -170,20 +133,22 @@ export function Atendimentos() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)] mb-1">Veterinário</p>
-                <p className="font-medium">{atendimento.veterinario}</p>
+                <p className="font-medium">ID: {atendimento.veterinarian}</p>
               </div>
               <div>
                 <p className="text-sm text-[var(--color-text-secondary)] mb-1">Data/Hora</p>
-                <p className="font-medium">{atendimento.data}</p>
+                <p className="font-medium">{new Date(atendimento.datetime).toLocaleString('pt-BR')}</p>
               </div>
-              <div className="md:col-span-2">
-                <p className="text-sm text-[var(--color-text-secondary)] mb-1">Sintomas</p>
-                <p className="font-medium">{atendimento.sintomas}</p>
-              </div>
-              {atendimento.diagnostico && (
+              {atendimento.symptoms && (
+                <div className="md:col-span-2">
+                  <p className="text-sm text-[var(--color-text-secondary)] mb-1">Sintomas</p>
+                  <p className="font-medium">{atendimento.symptoms}</p>
+                </div>
+              )}
+              {atendimento.diagnosis && (
                 <div className="md:col-span-2">
                   <p className="text-sm text-[var(--color-text-secondary)] mb-1">Diagnóstico</p>
-                  <p className="font-medium">{atendimento.diagnostico}</p>
+                  <p className="font-medium">{atendimento.diagnosis}</p>
                 </div>
               )}
             </div>
@@ -203,48 +168,14 @@ export function Atendimentos() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2 text-[var(--color-text-secondary)]">
-                    Animal
-                  </label>
-                  <select 
-                    defaultValue={selectedAtendimento?.animal}
-                    className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-clinico-border)] transition-colors"
-                  >
-                    <option>Selecione o animal</option>
-                    <option>Rex - João Silva</option>
-                    <option>Mia - Maria Santos</option>
-                    <option>Bob - Pedro Costa</option>
-                    <option>Luna - Ana Oliveira</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--color-text-secondary)]">
-                    Veterinário
-                  </label>
-                  <select 
-                    defaultValue={selectedAtendimento?.veterinario}
-                    className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-clinico-border)] transition-colors"
-                  >
-                    <option>Dr. Carlos</option>
-                    <option>Dra. Ana</option>
-                    <option>Dr. Roberto</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--color-text-secondary)]">
                     Tipo de Atendimento
                   </label>
-                  <select 
-                    defaultValue={selectedAtendimento?.tipo}
+                  <input
+                    type="text"
+                    defaultValue={selectedAtendimento?.type}
                     className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-clinico-border)] transition-colors"
-                  >
-                    <option>Consulta de rotina</option>
-                    <option>Vacinação</option>
-                    <option>Emergência</option>
-                    <option>Cirurgia</option>
-                    <option>Retorno</option>
-                  </select>
+                    placeholder="Tipo do atendimento"
+                  />
                 </div>
 
                 <div>
@@ -267,7 +198,7 @@ export function Atendimentos() {
                   Sintomas / Motivo da Consulta
                 </label>
                 <textarea
-                  defaultValue={selectedAtendimento?.sintomas}
+                  defaultValue={selectedAtendimento?.symptoms || ''}
                   className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-clinico-border)] transition-colors resize-none"
                   rows={4}
                   placeholder="Descreva os sintomas apresentados..."
@@ -279,7 +210,7 @@ export function Atendimentos() {
                   Diagnóstico
                 </label>
                 <textarea
-                  defaultValue={selectedAtendimento?.diagnostico}
+                  defaultValue={selectedAtendimento?.diagnosis || ''}
                   className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-clinico-border)] transition-colors resize-none"
                   rows={4}
                   placeholder="Diagnóstico e observações..."

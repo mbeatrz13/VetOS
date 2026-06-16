@@ -1,67 +1,37 @@
 import { useState } from "react";
-import { Search, Plus, Pill, PawPrint, Calendar, Clock } from "lucide-react";
-
-interface Prescricao {
-  id: number;
-  data: string;
-  animal: string;
-  tutor: string;
-  veterinario: string;
-  medicamento: string;
-  dosagem: string;
-  frequencia: string;
-  duracao: string;
-  observacoes: string;
-}
+import { Search, Plus, Pill, PawPrint, Calendar, Clock, AlertCircle } from "lucide-react";
+import { usePrescriptions } from "../../../hooks/usePrescriptions";
 
 export function Prescricoes() {
+  const { prescriptions, loading, error } = usePrescriptions();
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [selectedPrescricao, setSelectedPrescricao] = useState<Prescricao | null>(null);
+  const [selectedPrescricao, setSelectedPrescricao] = useState<typeof prescriptions[0] | null>(null);
 
-  const [prescricoes] = useState<Prescricao[]>([
-    {
-      id: 1,
-      data: "2026-03-19",
-      animal: "Rex",
-      tutor: "João Silva",
-      veterinario: "Dr. Carlos",
-      medicamento: "Amoxicilina",
-      dosagem: "500mg",
-      frequencia: "2x ao dia",
-      duracao: "7 dias",
-      observacoes: "Administrar junto com alimento"
-    },
-    {
-      id: 2,
-      data: "2026-03-19",
-      animal: "Luna",
-      tutor: "Ana Oliveira",
-      veterinario: "Dra. Ana",
-      medicamento: "Prednisolona",
-      dosagem: "5mg",
-      frequencia: "1x ao dia",
-      duracao: "5 dias",
-      observacoes: "Administrar pela manhã, em jejum"
-    },
-    {
-      id: 3,
-      data: "2026-03-18",
-      animal: "Mia",
-      tutor: "Maria Santos",
-      veterinario: "Dra. Ana",
-      medicamento: "Vermífugo",
-      dosagem: "1 comprimido",
-      frequencia: "Dose única",
-      duracao: "1 dia",
-      observacoes: "Repetir após 15 dias"
-    },
-  ]);
-
-  const handleViewDetails = (prescricao: Prescricao) => {
+  const handleViewDetails = (prescricao: typeof prescriptions[0]) => {
     setSelectedPrescricao(prescricao);
     setShowModal(true);
   };
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-[var(--color-error)]/10 border border-[var(--color-error)] rounded-xl p-6">
+          <p className="text-[var(--color-error)]">Erro ao carregar prescrições: {error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <p className="text-[var(--color-text-secondary)]">Carregando prescrições...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -96,7 +66,7 @@ export function Prescricoes() {
 
       {/* Prescricoes Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {prescricoes.map((prescricao) => (
+        {prescriptions.map((prescricao) => (
           <div
             key={prescricao.id}
             onClick={() => handleViewDetails(prescricao)}
@@ -107,32 +77,25 @@ export function Prescricoes() {
                 <Pill className="w-6 h-6 text-[var(--color-clinico-light)]" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold mb-1 truncate">{prescricao.medicamento}</h3>
-                <p className="text-sm text-[var(--color-text-secondary)] truncate">{prescricao.dosagem}</p>
+                <h3 className="font-semibold mb-1 truncate">{prescricao.medication}</h3>
+                <p className="text-sm text-[var(--color-text-secondary)] truncate">{prescricao.dosage}</p>
               </div>
             </div>
 
             <div className="space-y-2 mb-4">
               <div className="flex items-center gap-2 text-sm">
-                <PawPrint className="w-4 h-4 text-[var(--color-text-secondary)]" />
-                <span className="text-[var(--color-text-secondary)]">{prescricao.animal} - {prescricao.tutor}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
                 <Clock className="w-4 h-4 text-[var(--color-text-secondary)]" />
-                <span className="text-[var(--color-text-secondary)]">{prescricao.frequencia}</span>
+                <span className="text-[var(--color-text-secondary)]">{prescricao.frequency}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Calendar className="w-4 h-4 text-[var(--color-text-secondary)]" />
-                <span className="text-[var(--color-text-secondary)]">{prescricao.duracao}</span>
+                <span className="text-[var(--color-text-secondary)]">{prescricao.duration}</span>
               </div>
             </div>
 
             <div className="pt-3 border-t border-[var(--color-border)]">
               <p className="text-xs text-[var(--color-text-secondary)]">
-                Prescritor: {prescricao.veterinario}
-              </p>
-              <p className="text-xs text-[var(--color-text-secondary)]">
-                Data: {new Date(prescricao.data).toLocaleDateString('pt-BR')}
+                Data: {new Date(prescricao.issued_at).toLocaleDateString('pt-BR')}
               </p>
             </div>
           </div>
@@ -151,41 +114,11 @@ export function Prescricoes() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2 text-[var(--color-text-secondary)]">
-                    Animal
-                  </label>
-                  <select
-                    defaultValue={selectedPrescricao?.animal}
-                    className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-clinico-border)] transition-colors"
-                  >
-                    <option>Selecione o animal</option>
-                    <option>Rex - João Silva</option>
-                    <option>Mia - Maria Santos</option>
-                    <option>Bob - Pedro Costa</option>
-                    <option>Luna - Ana Oliveira</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--color-text-secondary)]">
-                    Veterinário
-                  </label>
-                  <select
-                    defaultValue={selectedPrescricao?.veterinario}
-                    className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-clinico-border)] transition-colors"
-                  >
-                    <option>Dr. Carlos</option>
-                    <option>Dra. Ana</option>
-                    <option>Dr. Roberto</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--color-text-secondary)]">
                     Medicamento
                   </label>
                   <input
                     type="text"
-                    defaultValue={selectedPrescricao?.medicamento}
+                    defaultValue={selectedPrescricao?.medication}
                     className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-clinico-border)] transition-colors"
                     placeholder="Nome do medicamento"
                   />
@@ -197,7 +130,7 @@ export function Prescricoes() {
                   </label>
                   <input
                     type="text"
-                    defaultValue={selectedPrescricao?.dosagem}
+                    defaultValue={selectedPrescricao?.dosage}
                     className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-clinico-border)] transition-colors"
                     placeholder="Ex: 500mg"
                   />
@@ -209,7 +142,7 @@ export function Prescricoes() {
                   </label>
                   <input
                     type="text"
-                    defaultValue={selectedPrescricao?.frequencia}
+                    defaultValue={selectedPrescricao?.frequency}
                     className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-clinico-border)] transition-colors"
                     placeholder="Ex: 2x ao dia"
                   />
@@ -221,7 +154,7 @@ export function Prescricoes() {
                   </label>
                   <input
                     type="text"
-                    defaultValue={selectedPrescricao?.duracao}
+                    defaultValue={selectedPrescricao?.duration}
                     className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-clinico-border)] transition-colors"
                     placeholder="Ex: 7 dias"
                   />
@@ -233,7 +166,7 @@ export function Prescricoes() {
                   Observações / Instruções
                 </label>
                 <textarea
-                  defaultValue={selectedPrescricao?.observacoes}
+                  defaultValue={selectedPrescricao?.instructions || ''}
                   className="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-clinico-border)] transition-colors resize-none"
                   rows={4}
                   placeholder="Instruções de uso, observações importantes..."
@@ -244,10 +177,10 @@ export function Prescricoes() {
                 <div className="bg-[var(--color-clinico)]/10 border border-[var(--color-clinico-border)] rounded-lg p-4">
                   <h4 className="font-semibold mb-2">Informações da Prescrição</h4>
                   <p className="text-sm text-[var(--color-text-secondary)]">
-                    Data: {new Date(selectedPrescricao.data).toLocaleDateString('pt-BR')}
+                    Data: {new Date(selectedPrescricao.issued_at).toLocaleDateString('pt-BR')}
                   </p>
                   <p className="text-sm text-[var(--color-text-secondary)]">
-                    Prescritor: {selectedPrescricao.veterinario}
+                    Medicamento: {selectedPrescricao.medication}
                   </p>
                 </div>
               )}
