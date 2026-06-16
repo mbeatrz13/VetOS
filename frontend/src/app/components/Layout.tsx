@@ -22,6 +22,7 @@ import { logout } from "../../services/auth.service";
 import { useAuth } from "../../hooks/useAuth";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useSessionSecurity } from "../../hooks/useSessionSecurity";
+import { pagePermissions, hasPermission } from "../../config/permissions";
 
 export function Layout() {
   const navigate = useNavigate();
@@ -53,6 +54,31 @@ export function Layout() {
     { path: "/funcionarios", icon: UserCog, label: "Funcionários" },
     { path: "/relatorios", icon: BarChart3, label: "Relatórios" },
   ];
+
+  // Filter menu items based on user permissions
+  const accessibleMenuItems = menuItems.filter(item => {
+    if ('divider' in item) {
+      return true; // Keep dividers, we'll hide them if no items below
+    }
+    
+    const permission = pagePermissions.find(p => p.path === item.path);
+    if (!permission) return true; // If no permission defined, show it
+    
+    return hasPermission(user?.role as any, permission);
+  });
+
+  // Remove consecutive dividers and trailing dividers
+  const filteredMenuItems = accessibleMenuItems.filter((item, index) => {
+    if ('divider' in item) {
+      const prevItem = index > 0 ? accessibleMenuItems[index - 1] : null;
+      const nextItem = index < accessibleMenuItems.length - 1 ? accessibleMenuItems[index + 1] : null;
+      
+      // Hide divider if previous is divider or next is divider/undefined
+      if (prevItem && 'divider' in prevItem) return false;
+      if (!nextItem || (nextItem && 'divider' in nextItem)) return false;
+    }
+    return true;
+  });
 
   return (
     <div className="flex h-screen bg-[var(--color-bg-dark)]">
@@ -92,7 +118,7 @@ export function Layout() {
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto p-4">
             <ul className="space-y-1">
-              {menuItems.map((item, index) => {
+              {filteredMenuItems.map((item, index) => {
                 if ('divider' in item) {
                   return (
                     <li key={index} className="pt-4 pb-2 px-3">

@@ -3,6 +3,7 @@ import { Login } from "./pages/Login";
 import { Dashboard } from "./pages/Dashboard";
 import { Layout } from "./components/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { PermissionGuard } from "./components/PermissionGuard";
 import { Tutores } from "./pages/recepcao/Tutores";
 import { Animais } from "./pages/recepcao/Animais";
 import { Agenda } from "./pages/recepcao/Agenda";
@@ -28,16 +29,86 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, Component: Dashboard },
-      { path: "tutores", Component: Tutores },
-      { path: "animais", Component: Animais },
-      { path: "agenda", Component: Agenda },
-      { path: "atendimentos", Component: Atendimentos },
-      { path: "prontuarios", Component: Prontuarios },
-      { path: "prescricoes", Component: Prescricoes },
-      { path: "exames", Component: Exames },
-      { path: "estoque", Component: Estoque },
-      { path: "funcionarios", Component: Funcionarios },
-      { path: "relatorios", Component: Relatorios },
+      {
+        path: "tutores",
+        Component: () => (
+          <PermissionGuard requiredPath="/tutores">
+            <Tutores />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: "animais",
+        Component: () => (
+          <PermissionGuard requiredPath="/animais">
+            <Animais />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: "agenda",
+        Component: () => (
+          <PermissionGuard requiredPath="/agenda">
+            <Agenda />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: "atendimentos",
+        Component: () => (
+          <PermissionGuard requiredPath="/atendimentos">
+            <Atendimentos />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: "prontuarios",
+        Component: () => (
+          <PermissionGuard requiredPath="/prontuarios">
+            <Prontuarios />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: "prescricoes",
+        Component: () => (
+          <PermissionGuard requiredPath="/prescricoes">
+            <Prescricoes />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: "exames",
+        Component: () => (
+          <PermissionGuard requiredPath="/exames">
+            <Exames />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: "estoque",
+        Component: () => (
+          <PermissionGuard requiredPath="/estoque">
+            <Estoque />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: "funcionarios",
+        Component: () => (
+          <PermissionGuard requiredPath="/funcionarios">
+            <Funcionarios />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: "relatorios",
+        Component: () => (
+          <PermissionGuard requiredPath="/relatorios">
+            <Relatorios />
+          </PermissionGuard>
+        ),
+      },
     ],
   },
 ]);
