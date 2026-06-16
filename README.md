@@ -17,8 +17,6 @@ feat/geyslaine
 feat/lucas
 ```
 
-Co-authored-by: Geyslaine Angelo <angelogeyslaine@gmail.com>
-
 ## Branches
 
 - `main`: versão estável do sistema.
