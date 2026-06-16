@@ -45,6 +45,42 @@ class UserWriteSerializer(serializers.ModelSerializer):
         return instance
 
 
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    """Registro de novos usuários (sem necessidade de ser admin)."""
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validate_password],
+    )
+    email = serializers.EmailField(required=True)
+
+    class Meta:
+        model  = User
+        fields = ["username", "email", "password"]
+
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("Este nome de usuário já existe.")
+        return value
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Este email já está registrado.")
+        return value
+
+    def create(self, validated_data):
+        password = validated_data.pop("password")
+        user = User(
+            username=validated_data["username"],
+            email=validated_data["email"],
+            role=User.Role.RECEPTIONIST,
+            state=User.State.ACTIVE,
+        )
+        user.set_password(password)
+        user.save()
+        return user
+
+
 # ── Alteração de senha ────────────────────────────────────────────────────────
 
 class ChangePasswordSerializer(serializers.Serializer):

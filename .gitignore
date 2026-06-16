@@ -27,6 +27,8 @@ __pycache__/
 # Django
 db.sqlite3
 media/
+backend/data/
+.pytest_cache/
 
 # VS Code
 .vscode/

@@ -12,6 +12,7 @@ from .permissions import IsAdmin, IsAnyAuthenticated
 from .serializers import (
     UserSerializer,
     UserWriteSerializer,
+    UserRegistrationSerializer,
     ChangePasswordSerializer,
     AccessLogSerializer,
 )
@@ -82,6 +83,32 @@ class LoginView(APIView):
                 "role":     user.role,
             },
         })
+
+
+class RegisterView(APIView):
+    """
+    POST /api/accounts/register/
+    Body: { "username": "...", "email": "...", "password": "..." }
+    Cria novo usuário com role RECEPTIONIST e state ACTIVE.
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = UserRegistrationSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response(
+                {
+                    "detail": "Registro realizado com sucesso.",
+                    "user": {
+                        "id": user.pk,
+                        "username": user.username,
+                        "email": user.email,
+                    },
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LogoutView(APIView):
