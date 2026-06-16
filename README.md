@@ -16,6 +16,13 @@ feat/eduarda
 feat/geyslaine
 feat/lucas
 ```
+## Tech Stack
+- `django/python`
+- `react/typescript`
+- `sqlite`
+- `docker`
+
+---
 
 ## Branches
 
