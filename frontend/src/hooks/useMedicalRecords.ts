@@ -41,9 +41,10 @@ export function useMedicalRecords() {
     setError(null);
     try {
       const data = await medicalRecordService.list(search);
-      setMedicalRecords(data);
+      setMedicalRecords(Array.isArray(data) ? data : []);
     } catch (err: any) {
       setError(err.message);
+      setMedicalRecords([]);
     } finally {
       setLoading(false);
     }

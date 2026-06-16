@@ -16,12 +16,16 @@ import {
   X
 } from "lucide-react";
 import { useState } from "react";
+import { logout } from "../../services/auth.service";
+import { useAuth } from "../../hooks/useAuth";
 
 export function Layout() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
+    logout();
     navigate("/login");
   };
 
@@ -121,11 +125,11 @@ export function Layout() {
           <div className="p-4 border-t border-[var(--color-border)]">
             <div className="flex items-center gap-3 p-3 rounded-lg bg-[var(--color-bg-card)]">
               <div className="w-10 h-10 rounded-full bg-[var(--color-secondary)] flex items-center justify-center text-[var(--color-primary)] font-semibold">
-                AD
+                {user?.username?.[0]?.toUpperCase() || '?'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">Admin</p>
-                <p className="text-xs text-[var(--color-text-secondary)] truncate">admin@vet.os</p>
+                <p className="text-sm font-medium truncate">{user?.username || 'User'}</p>
+                <p className="text-xs text-[var(--color-text-secondary)] truncate">{user?.role || 'N/A'}</p>
               </div>
               <button
                 onClick={handleLogout}

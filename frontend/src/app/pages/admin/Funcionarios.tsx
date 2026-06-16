@@ -58,10 +58,12 @@ export function Funcionarios() {
     }
   };
 
-  const filteredFuncionarios = employees.filter(f =>
-    f.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    f.role.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredFuncionarios = employees.filter(f => {
+    const name = (f.name ?? '').toLowerCase();
+    const role = (f.role ?? '').toLowerCase();
+    const search = searchTerm.toLowerCase();
+    return name.includes(search) || role.includes(search);
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -73,8 +75,8 @@ export function Funcionarios() {
   };
 
   const getCargoColor = (cargo: string) => {
-    if (cargo.includes("Veterinári")) return "bg-[var(--color-clinico)]/20 text-[var(--color-clinico-light)]";
-    if (cargo.includes("Recepcionista")) return "bg-[var(--color-recepcao)]/20 text-[var(--color-recepcao-light)]";
+    if ((cargo ?? '').includes("Veterinári")) return "bg-[var(--color-clinico)]/20 text-[var(--color-clinico-light)]";
+    if ((cargo ?? '').includes("Recepcionista")) return "bg-[var(--color-recepcao)]/20 text-[var(--color-recepcao-light)]";
     return "bg-[var(--color-admin)]/20 text-[var(--color-admin-light)]";
   };
 
@@ -115,149 +117,149 @@ export function Funcionarios() {
         </div>
       ) : (
         <>
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[var(--color-admin)] flex items-center justify-center">
-              <UserCog className="w-5 h-5 text-[var(--color-admin-light)]" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{employees.length}</p>
-              <p className="text-sm text-[var(--color-text-secondary)]">Total</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[var(--color-success)] flex items-center justify-center">
-              <UserCog className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{employees.filter(f => f.status === 'ativo').length}</p>
-              <p className="text-sm text-[var(--color-text-secondary)]">Ativos</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[var(--color-clinico)] flex items-center justify-center">
-              <UserCog className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{employees.filter(f => f.role.toLowerCase().includes('veterinári')).length}</p>
-              <p className="text-sm text-[var(--color-text-secondary)]">Veterinários</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[var(--color-warning)] flex items-center justify-center">
-              <UserCog className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{employees.filter(f => f.status === 'férias').length}</p>
-              <p className="text-sm text-[var(--color-text-secondary)]">Em Férias</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Search and Filter */}
-      <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-text-muted)]" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por nome ou cargo..."
-              className="w-full pl-10 pr-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-admin-border)] transition-colors"
-            />
-          </div>
-          <select className="px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-admin-border)] transition-colors">
-            <option>Todos os cargos</option>
-            <option>Veterinário</option>
-            <option>Recepcionista</option>
-            <option>Auxiliar</option>
-          </select>
-          <select className="px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-admin-border)] transition-colors">
-            <option>Todos os status</option>
-            <option>Ativo</option>
-            <option>Férias</option>
-            <option>Afastado</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Funcionários Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredFuncionarios.map((funcionario) => (
-          <div
-            key={funcionario.id}
-            className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-6 hover:border-[var(--color-border-light)] transition-all"
-          >
-            <div className="flex items-start justify-between mb-4">
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-6">
               <div className="flex items-center gap-3">
-                <div className="w-14 h-14 rounded-full bg-[var(--color-admin)] flex items-center justify-center text-[var(--color-admin-light)] font-semibold text-lg">
-                  {funcionario.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                <div className="w-10 h-10 rounded-lg bg-[var(--color-admin)] flex items-center justify-center">
+                  <UserCog className="w-5 h-5 text-[var(--color-admin-light)]" />
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-0.5">{funcionario.name}</h3>
-                  <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${getCargoColor(funcionario.role)}`}>
-                    {funcionario.role}
-                  </span>
+                  <p className="text-2xl font-bold">{employees.length}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Total</p>
                 </div>
               </div>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(funcionario.status)}`}>
-                {funcionario.status}
-              </span>
             </div>
 
-            <div className="space-y-2 mb-4">
-              {funcionario.email && (
-                <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                  <Mail className="w-4 h-4" />
-                  <span className="truncate">{funcionario.email}</span>
+            <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-[var(--color-success)] flex items-center justify-center">
+                  <UserCog className="w-5 h-5 text-white" />
                 </div>
-              )}
-              {funcionario.phone && (
-                <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                  <Phone className="w-4 h-4" />
-                  <span>{funcionario.phone}</span>
+                <div>
+                  <p className="text-2xl font-bold">{employees.filter(f => f.status === 'ativo').length}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Ativos</p>
                 </div>
-              )}
-              {funcionario.hire_date && (
-                <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                  <Calendar className="w-4 h-4" />
-                  <span>Admissão: {new Date(funcionario.hire_date).toLocaleDateString('pt-BR')}</span>
-                </div>
-              )}
+              </div>
             </div>
 
-            <div className="flex gap-2 pt-3 border-t border-[var(--color-border)]">
-              <button
-                onClick={() => handleEdit(funcionario)}
-                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[var(--color-bg-card)] hover:bg-[var(--color-border)] rounded-lg transition-colors text-sm"
-              >
-                <Edit className="w-4 h-4" />
-                Editar
-              </button>
-              <button
-                onClick={() => handleDelete(funcionario.id)}
-                className="px-3 py-2 bg-[var(--color-bg-card)] hover:bg-[var(--color-border)] rounded-lg transition-colors"
-              >
-                <Trash2 className="w-4 h-4 text-[var(--color-error)]" />
-              </button>
+            <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-[var(--color-clinico)] flex items-center justify-center">
+                  <UserCog className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{employees.filter(f => (f.role ?? '').toLowerCase().includes('veterinári')).length}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Veterinários</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-[var(--color-warning)] flex items-center justify-center">
+                  <UserCog className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{employees.filter(f => f.status === 'férias').length}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Em Férias</p>
+                </div>
+              </div>
             </div>
           </div>
-        ))}
-      </div>
-      </>
+
+          {/* Search and Filter */}
+          <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-text-muted)]" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Buscar por nome ou cargo..."
+                  className="w-full pl-10 pr-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-admin-border)] transition-colors"
+                />
+              </div>
+              <select className="px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-admin-border)] transition-colors">
+                <option>Todos os cargos</option>
+                <option>Veterinário</option>
+                <option>Recepcionista</option>
+                <option>Auxiliar</option>
+              </select>
+              <select className="px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-admin-border)] transition-colors">
+                <option>Todos os status</option>
+                <option>Ativo</option>
+                <option>Férias</option>
+                <option>Afastado</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Funcionários Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredFuncionarios.map((funcionario) => (
+              <div
+                key={funcionario.id}
+                className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-6 hover:border-[var(--color-border-light)] transition-all"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-14 h-14 rounded-full bg-[var(--color-admin)] flex items-center justify-center text-[var(--color-admin-light)] font-semibold text-lg">
+                      {(funcionario.name ?? 'U').split(' ').map(n => n[0]).join('').slice(0, 2)}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-0.5">{funcionario.name}</h3>
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${getCargoColor(funcionario.role)}`}>
+                        {funcionario.role || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(funcionario.status)}`}>
+                    {funcionario.status || 'N/A'}
+                  </span>
+                </div>
+
+                <div className="space-y-2 mb-4">
+                  {funcionario.email && (
+                    <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
+                      <Mail className="w-4 h-4" />
+                      <span className="truncate">{funcionario.email}</span>
+                    </div>
+                  )}
+                  {funcionario.phone && (
+                    <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
+                      <Phone className="w-4 h-4" />
+                      <span>{funcionario.phone}</span>
+                    </div>
+                  )}
+                  {funcionario.hire_date && (
+                    <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
+                      <Calendar className="w-4 h-4" />
+                      <span>Admissão: {new Date(funcionario.hire_date).toLocaleDateString('pt-BR')}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2 pt-3 border-t border-[var(--color-border)]">
+                  <button
+                    onClick={() => handleEdit(funcionario)}
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[var(--color-bg-card)] hover:bg-[var(--color-border)] rounded-lg transition-colors text-sm"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => handleDelete(funcionario.id)}
+                    className="px-3 py-2 bg-[var(--color-bg-card)] hover:bg-[var(--color-border)] rounded-lg transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4 text-[var(--color-error)]" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Modal */}

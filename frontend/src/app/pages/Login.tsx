@@ -1,16 +1,28 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { PawPrint, Mail, Lock } from "lucide-react";
+import { login } from "../../services/auth.service";
 
 export function Login() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login - qualquer credencial funciona
-    navigate("/");
+    setError("");
+    setLoading(true);
+
+    try {
+      await login(username, password);
+      navigate("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -48,6 +60,7 @@ export function Login() {
                   placeholder="seu-username"
                   className="w-full pl-10 pr-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-secondary)] transition-colors"
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -66,21 +79,32 @@ export function Login() {
                   placeholder="••••••••"
                   className="w-full pl-10 pr-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:border-[var(--color-secondary)] transition-colors"
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
 
+            {error && (
+              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500 text-sm">
+                {error}
+              </div>
+            )}
+
             <button
               type="submit"
-              className="w-full py-3 bg-[var(--color-secondary)] hover:bg-[var(--color-secondary-light)] text-[var(--color-primary)] font-semibold rounded-lg transition-colors"
+              disabled={loading}
+              className="w-full py-3 bg-[var(--color-secondary)] hover:bg-[var(--color-secondary-light)] disabled:opacity-50 disabled:cursor-not-allowed text-[var(--color-primary)] font-semibold rounded-lg transition-colors"
             >
-              Entrar
+              {loading ? "Entrando..." : "Entrar"}
             </button>
           </form>
 
           <div className="mt-6 pt-6 border-t border-[var(--color-border)]">
             <p className="text-sm text-center text-[var(--color-text-muted)]">
-              Use qualquer email e senha para acessar o sistema
+              Credenciais de teste:<br/>
+              Admin: admin / admin123<br/>
+              Vet: dr_carlos_silva / vet123<br/>
+              Rec: rec_1 / rec123
             </p>
           </div>
         </div>
