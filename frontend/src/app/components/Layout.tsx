@@ -13,16 +13,24 @@ import {
   BarChart3,
   LogOut,
   Menu,
-  X
+  X,
+  Sun,
+  Moon
 } from "lucide-react";
 import { useState } from "react";
 import { logout } from "../../services/auth.service";
 import { useAuth } from "../../hooks/useAuth";
+import { useTheme } from "../../contexts/ThemeContext";
+import { useSessionSecurity } from "../../hooks/useSessionSecurity";
 
 export function Layout() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Enable session security
+  useSessionSecurity();
 
   const handleLogout = () => {
     logout();
@@ -153,13 +161,28 @@ export function Layout() {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Mobile header */}
-        <header className="lg:hidden bg-[var(--color-bg-secondary)] border-b border-[var(--color-border)] p-4">
+        {/* Header with theme toggle */}
+        <header className="bg-[var(--color-bg-secondary)] border-b border-[var(--color-border)] px-6 py-4 flex items-center justify-between">
+          <div className="lg:hidden">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+          </div>
+          <div />
+          
           <button
-            onClick={() => setSidebarOpen(true)}
-            className="text-[var(--color-text-secondary)] hover:text-white"
+            onClick={toggleTheme}
+            className="p-2 hover:bg-[var(--color-bg-card)] rounded-lg transition-colors"
+            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
           >
-            <Menu className="w-6 h-6" />
+            {theme === 'dark' ? (
+              <Sun className="w-5 h-5 text-[var(--color-secondary)]" />
+            ) : (
+              <Moon className="w-5 h-5 text-[var(--color-primary)]" />
+            )}
           </button>
         </header>
 

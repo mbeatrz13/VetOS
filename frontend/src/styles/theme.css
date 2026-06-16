@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  /* Vet.OS Color Palette */
+  /* Vet.OS Color Palette - Dark Mode (default) */
   --color-primary: #0F3D3E;
   --color-primary-light: #154348;
   --color-secondary: #5DCAA5;
@@ -36,10 +36,47 @@
   --color-error: #EF4444;
 }
 
+/* Light Mode */
+[data-theme="light"] {
+  --color-primary: #0F3D3E;
+  --color-primary-light: #0A5A48;
+  --color-secondary: #4BA88D;
+  --color-secondary-light: #6FBB9F;
+  --color-accent: #E63946;
+  
+  --color-recepcao: #085041;
+  --color-recepcao-light: #0A5A48;
+  --color-recepcao-border: #4BA88D;
+  
+  --color-clinico: #3C3489;
+  --color-clinico-light: #5945B8;
+  --color-clinico-border: #8B85D8;
+  
+  --color-admin: #712B13;
+  --color-admin-light: #A63D1E;
+  --color-admin-border: #D4643B;
+  
+  --color-bg-dark: #F8F8F8;
+  --color-bg-secondary: #FFFFFF;
+  --color-bg-card: #F0F0F0;
+  
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #4A4A4A;
+  --color-text-muted: #888888;
+  
+  --color-border: #E0E0E0;
+  --color-border-light: #D0D0D0;
+  
+  --color-success: #059669;
+  --color-warning: #D97706;
+  --color-error: #DC2626;
+}
+
 body {
   background-color: var(--color-bg-dark);
   color: var(--color-text-primary);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1 {
@@ -58,4 +95,19 @@ h3 {
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--color-text-primary);
+}
+
+/* Smooth transitions for theme changes */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Avoid transition on animations */
+[class*="animate"] {
+  transition: none !important;
+}
+
+/* Icon color adjustments for better visibility */
+svg {
+  color: currentColor;
 }
