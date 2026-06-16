@@ -134,7 +134,7 @@ pages/recepcao/Tutores.tsx
 
 ---
 
-## ⏳ Frontend (Clínico)
+## ✅ Geyslaine - Frontend (Clínico)
 
 - Refatorar `Atendimentos.tsx` (criar `useConsultations`)
 - Refatorar `Exames.tsx` (utilizar `useExams`)
@@ -143,7 +143,7 @@ pages/recepcao/Tutores.tsx
 
 ---
 
-## ⏳ Frontend (Administrativo)
+## ✅ Geyslaine - (Administrativo)
 
 - Refatorar `Estoque.tsx` (utilizar `useProducts`)
 - Refatorar `Funcionarios.tsx` (utilizar `useEmployees`)
@@ -151,7 +151,7 @@ pages/recepcao/Tutores.tsx
 
 ---
 
-## ⏳ Backend
+## ✅ Lucas - Backend
 
 - Corrigir encoding do `requirements.txt`
 - Implementar autenticação completa (`login`, `register`, `refresh token`)
