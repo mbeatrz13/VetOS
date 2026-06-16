@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { PawPrint, Mail, Lock } from "lucide-react";
+import { PawPrint, Mail, Lock, Sun, Moon } from "lucide-react";
 import { login } from "../../services/auth.service";
+import { useTheme } from "../../contexts/ThemeContext";
 
 export function Login() {
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -26,7 +28,20 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-dark)] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-dark)] p-4 relative">
+      {/* Theme Toggle Button */}
+      <button
+        onClick={toggleTheme}
+        className="fixed top-6 right-6 p-2 hover:bg-[var(--color-bg-card)] rounded-lg transition-colors"
+        title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+      >
+        {theme === 'dark' ? (
+          <Sun className="w-5 h-5 text-[var(--color-secondary)]" />
+        ) : (
+          <Moon className="w-5 h-5 text-[var(--color-primary)]" />
+        )}
+      </button>
+
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
