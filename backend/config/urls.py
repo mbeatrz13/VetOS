@@ -29,5 +29,6 @@ urlpatterns = [
     path('api/reports/', include('apps.reports.urls')),
     path('api/dashboard/', include('apps.dashboard.urls')),
     path('api/accounts/', include('apps.accounts.urls')),
+    path('clinic/', include('apps.clinic.urls')),  # Rota para frontend acessar dados da clínica
     path('', health_check),
 ]
